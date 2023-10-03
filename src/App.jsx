@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import Confetti from "react-confetti"; // Import react-confetti
+import { useSpring, animated } from "react-spring";
+import Confetti from "react-confetti";
 import "./App.css";
 
 function App() {
@@ -11,12 +12,23 @@ function App() {
   const [data, setdata] = useState(initialData);
   const [move, setmove] = useState("X");
   const [win, setwin] = useState(null);
+  const [confetti, setConfetti] = useState(false);
+  const [winningCombo, setWinningCombo] = useState([]);
 
-  const [confetti, setConfetti] = useState(false); // State to control confetti
+  const markerSpring = useSpring({
+    opacity: 1,
+    transform: "scale(1)",
+    from: { opacity: 0, transform: "scale(0.5)" },
+    config: { tension: 300, friction: 10 },
+  });
+
+  const winningComboSpring = useSpring({
+    opacity: win ? 1 : 0,
+    from: { opacity: 0 },
+  });
 
   const handleClick = (id) => {
     if (win || data.flat().every((cell) => cell !== "")) {
-      // Game is over or all cells are filled
       return;
     }
 
@@ -33,15 +45,12 @@ function App() {
 
   const checkWinner = (squares) => {
     const winningCombos = [
-      // Rows
       [[0, 0], [0, 1], [0, 2]],
       [[1, 0], [1, 1], [1, 2]],
       [[2, 0], [2, 1], [2, 2]],
-      // Columns
       [[0, 0], [1, 0], [2, 0]],
       [[0, 1], [1, 1], [2, 1]],
       [[0, 2], [1, 2], [2, 2]],
-      // Diagonals
       [[0, 0], [1, 1], [2, 2]],
       [[0, 2], [1, 1], [2, 0]],
     ];
@@ -54,7 +63,8 @@ function App() {
         squares[a[0]][a[1]] === squares[c[0]][c[1]]
       ) {
         setwin(move);
-        setConfetti(true); // Activate confetti when there's a winner
+        setConfetti(true);
+        setWinningCombo(combo); // Store the winning combination
         return;
       }
     }
@@ -68,42 +78,37 @@ function App() {
     setdata(initialData);
     setwin(null);
     setmove("X");
-    setConfetti(false); // Deactivate confetti when restarting
+    setConfetti(false);
+    setWinningCombo([]);
   };
 
   return (
     <>
       <h1>Tic Tac Toe</h1>
       {win && <h1>the winner is {win}</h1>}
-      {confetti && <Confetti />} {/* Display confetti when there's a winner */}
+      {confetti && <Confetti />}
       <div className="container">
-        <div id="00" className="card" onClick={() => handleClick("00")}>
-          {data[0][0]}
-        </div>
-        <div id="01" className="card" onClick={() => handleClick("01")}>
-          {data[0][1]}
-        </div>
-        <div id="02" className="card" onClick={() => handleClick("02")}>
-          {data[0][2]}
-        </div>
-        <div id="10" className="card" onClick={() => handleClick("10")}>
-          {data[1][0]}
-        </div>
-        <div id="11" className="card" onClick={() => handleClick("11")}>
-          {data[1][1]}
-        </div>
-        <div id="12" className="card" onClick={() => handleClick("12")}>
-          {data[1][2]}
-        </div>
-        <div id="20" className="card" onClick={() => handleClick("20")}>
-          {data[2][0]}
-        </div>
-        <div id="21" className="card" onClick={() => handleClick("21")}>
-          {data[2][1]}
-        </div>
-        <div id="22" className="card" onClick={() => handleClick("22")}>
-          {data[2][2]}
-        </div>
+        {data.map((row, rowIndex) =>
+          row.map((cell, colIndex) => {
+            const cellId = `${rowIndex}${colIndex}`;
+            const isWinningCell =
+              winningCombo.some(([row, col]) => row === rowIndex && col === colIndex) && win;
+
+            return (
+              <animated.div
+                key={cellId}
+                id={cellId}
+                className={`card ${isWinningCell ? "winning-cell" : ""}`}
+                style={markerSpring}
+                onClick={() => handleClick(cellId)}
+              >
+                {cell}
+              </animated.div>
+            );
+          })
+        )}
+        {/* Animation for winning combination */}
+        <animated.div className="winning-animation" style={winningComboSpring} />
       </div>
       <button onClick={handleRestart}>Restart</button>
     </>

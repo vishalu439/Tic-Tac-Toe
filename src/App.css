@@ -76,3 +76,23 @@ button:hover {
     font-size: 18px; /* Reduce font size for smaller screens */
   }
 }
+
+.winning-cell {
+  background-color: #7ce33d; /* Change the background color of winning cells */
+  color: #fff; /* Change the text color of winning cells */
+  transition: background-color 0.3s ease;
+}
+
+/* Winning animation */
+.winning-animation {
+  position: absolute;
+  background: linear-gradient(45deg, #ffdb58, #ff00cc);
+  width: 0%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: -1;
+  transition: width 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
